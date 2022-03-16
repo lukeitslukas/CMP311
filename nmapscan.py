@@ -1,21 +1,17 @@
+# Press Shift+F10 to execute it
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
 import nmap
-import sys
 
 Scan = nmap.PortScanner()
 
-position = 1
-hosts = ''
+file = open('targets.txt')
+targets = file.read()
+file.close()
 
-while len(sys.argv) > position:
-    hosts = hosts + sys.argv[position]
-    position = position + 1
-
-if len(sys.argv) == 1:
-    print('Please provide target(s)')
-
-else:
-    Scan.scan(hosts=hosts)
-
+if len(targets) != 0:
+    Scan.scan(hosts=targets)
+    print('Scan Complete!')
     for host in Scan.all_hosts():
         print('----------------------------------------------------')
         print('Host : %s (%s)' % (host, Scan[host].hostname()))
@@ -27,3 +23,5 @@ else:
             ports = Scan[host][proto].keys()
             for port in ports:
                 print('port : %s\t state : %s' % (port, Scan[host][proto][port]['state']))
+else:
+    print('Targets list is empty, exiting.')
