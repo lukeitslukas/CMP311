@@ -5,14 +5,24 @@ import nmap
 
 Scan = nmap.PortScanner()
 
-file = open('targets.txt')
-targets = file.read()
-file.close()
+hostFile = open('targets.txt')
+ipFile = open("IP list.txt", "w")
+targets = hostFile.read()
+hostFile.close()
+
+first = True
 
 if len(targets) != 0:
     Scan.scan(hosts=targets)
+    print(targets)
     print('Scan Complete!')
     for host in Scan.all_hosts():
+        if first:
+            ipFile.write(host)
+            first = False
+        else:
+            ipFile.write(", " + host)
+
         print('----------------------------------------------------')
         print('Host : %s (%s)' % (host, Scan[host].hostname()))
         print('State : %s' % Scan[host].state())
@@ -25,3 +35,5 @@ if len(targets) != 0:
                 print('port : %s\t state : %s' % (port, Scan[host][proto][port]['state']))
 else:
     print('Targets list is empty, exiting.')
+
+ipFile.close()
