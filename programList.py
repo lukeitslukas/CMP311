@@ -2,9 +2,20 @@ import subprocess
 from datetime import datetime
 import os
 import glob
+import csv
+from socket import *
+
+# TESTING INSTRUCTIONS BELOW
+# Create "Results" directory in C: drive for the program to work
+# Run Program once, then edit newly created file to have an extra program or two
+# Run program again to get CSV output in same directory as the program
 
 save_path = 'C:/Results'  # Directory for all results
 absolute_file = str("")  # Unique File name bundled with Directory (C:/Results)
+
+
+def remote_connection():  # Code to connect to other machines
+    print("I fucking hate this bit and it makes me want to die on a daily basis.")
 
 
 def find_programs():
@@ -46,7 +57,23 @@ def compare_programs():
         lines1 = f1.readlines()  # Stored first file in list
         lines2 = f2.readlines()  # Stores second file in list
 
-        print(diff(lines1, lines2))  # Use function to find differences between the two lists
+        diff_results = (diff(lines1, lines2))  # Use function to find differences between the two lists
+
+        # Code to tidy up the output
+        diff_results = list(map(lambda x: x.replace('DisplayName : ', '').replace('\n', ''), diff_results))
+
+        diff_results2 = str(diff_results)[1:-1]  # Removes Square Brackets from output
+        print(diff_results2)
+        header = ['Program Name']
+        data = [diff_results2]
+
+        with open("newPrograms.csv", 'w') as f:
+
+            writer = csv.writer(f)
+
+            writer.writerow(header)
+
+            writer.writerow(data)  # Write output to CSV file
 
     elif number_of_files < 1:  # Code to catch exception. Not sure how this would occur but coded in just for safety
         print("ERROR: There should be at least 1 file present in the directory")
@@ -73,6 +100,7 @@ def generate_file():
 
 
 def run_script():  # Order executing functions in
+    # remote_connection()
     generate_file()
     find_programs()
     compare_programs()
