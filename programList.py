@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import glob
 import csv
+import sys
 from socket import *
 
 # TESTING INSTRUCTIONS BELOW
@@ -64,14 +65,11 @@ def compare_programs():
 
         diff_results2 = str(diff_results)[1:-1]  # Removes Square Brackets from output
         print(diff_results2)
-        header = ['Program Name']
         data = [diff_results2]
 
         with open("newPrograms.csv", 'w') as f:
 
             writer = csv.writer(f)
-
-            writer.writerow(header)
 
             writer.writerow(data)  # Write output to CSV file
 
