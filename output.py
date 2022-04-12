@@ -1,5 +1,58 @@
 import dominate
 from dominate.tags import *
+from collections import Counter
+
+
+def readFile(filename):
+    outputList = []
+
+    with open(f"{filename}.txt", "r") as output:
+        for line in output:
+
+            counter = 0
+            list = line.strip().split(',', 2)
+            list[2] = list[2].strip().split(',')
+
+            for i in list[2]:
+                if i != '':
+                    list[2][counter] = (i.strip().split(":"))
+                counter += 1
+
+            outputList.append(list)
+
+    output.close()
+
+    return outputList
+
+
+def nmapOutput(report, newList, oldList):
+    ipCounter = Counter()
+    macCounter = Counter()
+
+    length = max(len(newList), len(oldList))
+
+    for i in range(0, len(newList)):
+        ipCounter[newList[i][0].strip()] += 1
+        if newList[i][1].strip() != "":
+            macCounter[newList[i][1].strip()] += 1
+    for i in range(0, len(oldList)):
+        ipCounter[oldList[i][0].strip()] += 1
+        if oldList[i][1].strip() != "":
+            macCounter[oldList[i][1].strip()] += 1
+
+    for i in range(0, len(newList)):
+        if ipCounter[newList[i][0].strip()] != 2 and newList[i][0].strip():
+            print(newList[i][0], 'new ip', ipCounter[newList[i][0].strip()])
+        if macCounter[newList[i][1].strip()] != 2 and newList[i][1].strip():
+            print(newList[i][1], 'new mac', macCounter[newList[i][1].strip()])
+    for i in range(0, len(oldList)):
+        if ipCounter[oldList[i][0].strip()] != 2 and oldList[i][0].strip():
+            print(oldList[i][0], 'disconnected', ipCounter[oldList[i][0].strip()])
+        if macCounter[oldList[i][1].strip()] != 2 and oldList[i][1].strip():
+            print(oldList[i][1], 'changed mac', macCounter[oldList[i][1].strip()])
+
+
+    return report
 
 
 def setupDoc(report):
@@ -12,9 +65,8 @@ def setupDoc(report):
     return report
 
 
-def resultsParagraph(report, colour, title, context):
+def resultsHeader(report, colour, title, context):
     # creates a title showing coloured box depending on status
-    message = ""
     with report:
         with div(style='font-weight: bold;'):
             p(title, cls='title ' + colour)
@@ -39,11 +91,13 @@ def main():
 
     report.add(hr())
 
-    resultsParagraph(report, 'red', 'NMap Scan Results', 'There are several changes since the last scan.')
+    newOutputList, oldOutputList = readFile("newOutput"), readFile("oldOutput")
 
-    resultsParagraph(report, 'green', 'User Passwords', 'No user passwords were found in common password lists.')
+    nmapOutput(report, newOutputList, oldOutputList)
 
-    resultsParagraph(report, 'yellow', 'Installed Software', 'Some changes were found but are not concerning.')
+    resultsHeader(report, 'green', 'User Passwords', 'No user passwords were found in common password lists.')
+
+    resultsHeader(report, 'yellow', 'Installed Software', 'Some changes were found but are not concerning.')
 
     uploadReport = open('index.html', 'w')
     uploadReport.write(report.render())
