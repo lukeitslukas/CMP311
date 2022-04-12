@@ -1,13 +1,13 @@
-# Press Shift+F10 to execute it
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 import nmap
+import os
 
 Scan = nmap.PortScanner()
+os.remove("oldOutput.txt")
+os.rename("newOutput.txt", "oldOutput.txt")
 
 hostFile = open('targets.txt')
 ipFile = open("IP list.txt", "w")
-output = open("Full output.txt", "w")
+output = open("newOutput.txt", "w")
 targets = hostFile.read()
 hostFile.close()
 
@@ -28,30 +28,34 @@ if len(targets) != 0:
         print('----------------------------------------------------')
         print('Host : %s (%s)' % (host, Scan[host].hostname()))
 
-        output.write(host + ", ")
+        output.write(host)
 
         mac = "-"
         vendorName = "-"
 
         if 'mac' in Scan[host]['addresses']:
             mac = Scan[host]['addresses']['mac']
-            output.write(mac + ", ")
+            output.write(", " + mac)
 
         print('State : %s' % Scan[host].state())
-        for proto in Scan[host].all_protocols():
-            print('----------')
-            print('Protocol : %s' % proto)
-            output.write(proto + "; ")
-            ports = Scan[host][proto].keys()
+        if Scan[host].all_protocols():
+            output.write(", ")
+            for proto in Scan[host].all_protocols():
+                print('----------')
+                print('Protocol : %s' % proto)
+                output.write(proto + "; ")
+                ports = Scan[host][proto].keys()
 
-            fst = True
-            for port in ports:
-                if fst:
-                    fst = False
-                else:
-                    output.write(", ")
-                output.write(str(port) + ": " + Scan[host][proto][port]['state'])
-                print('port : %s\t state : %s' % (port, Scan[host][proto][port]['state']))
+                fst = True
+                for port in ports:
+                    if fst:
+                        fst = False
+                    else:
+                        output.write(", ")
+                    output.write(str(port) + ": " + Scan[host][proto][port]['state'])
+                    print('port : %s\t state : %s' % (port, Scan[host][proto][port]['state']))
+                output.write("\n")
+        else:
             output.write("\n")
 else:
     print('Targets list is empty, exiting.')
