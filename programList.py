@@ -1,24 +1,89 @@
 import subprocess
+import time
 from datetime import datetime
 import os
 import glob
 import csv
-import sys
-from socket import *
-
-# TESTING INSTRUCTIONS BELOW
-# Create "Results" directory in C: drive for the program to work
-# Run Program once, then edit newly created file to have an extra program or two
-# Run program again to get CSV output in same directory as the program
+import os.path
+from paramiko import SSHClient, AutoAddPolicy
+from rich import print
 
 save_path = 'C:/Results'  # Directory for all results
-absolute_file = str("")  # Unique File name bundled with Directory (C:/Results)
+absolute_file = str("")  # Unique File name bundled with Directory (C:/Results/"PCname"/)
 
 
-def remote_connection():  # Code to connect to other machines
-    print("I fucking hate this bit and it makes me want to die on a daily basis.")
+def create_directories(hostname):  # Create Results Directory, and subdirectories, if they do not already exist
+    global absolute_file
+    directory = "C:/Results/"
+    sub_directory = directory + hostname
+    print(sub_directory)
+    if not os.path.exists(directory):  # Create Results Directory if it does not already exist
+        os.makedirs(directory)
+    if not os.path.exists(sub_directory):  # Create subdirectory (PC name in workgroup) if it does not already exist
+        os.makedirs(sub_directory)
+
+    absolute_file = sub_directory
+
+    return absolute_file
 
 
+def remote_connection():  # Code to connect to other machines, run batch file and write output to file
+    hosts = ['192.168.0.32', '192.168.0.33']  # List of IPs for client PCs
+
+    for host in hosts:
+        client = SSHClient()
+        user = os.getlogin()
+        client.load_host_keys('C:/Users/' + user + '/.ssh/known_hosts')
+        client.set_missing_host_key_policy(AutoAddPolicy())
+        client.load_system_host_keys()
+
+        # client.connect('192.168.0.32', username='SecurityAdmin', password='admin')  # Dont use if SSH keys are
+        # available
+        client.connect(host, username='SecurityAdmin')
+
+        # commands = ['echo Test', 'hostname']
+        host_command = 'hostname'
+        commands = ['softwareList.bat']  # Name of program on Remote PC
+
+        stdin, stdout, stderr = client.exec_command(host_command)  # Command to receive name of PC
+        stdin.close()
+
+        if stdout.channel.recv_exit_status() == 0:
+            hostname = f'{stdout.read().decode("utf8")}'
+            print(hostname)  # DEBUG CODE REMOVE WHEN FINISHED
+            hostname = hostname.strip('\r\n')
+            create_directories(hostname)  # Pass PC name to create_directories function
+
+        else:
+            print(f'STDERR: {stderr.read().decode("utf8")}')  # Displays error message
+
+        stdout.close()
+        stderr.close()
+
+        generate_file()  # Run generate_file function, has to be done after successfully getting hostname
+
+        global absolute_file
+        f = open(absolute_file, "w")
+
+        for command in commands:  # Runs through commands
+            stdin, stdout, stderr = client.exec_command(command)
+            stdin.close()
+
+            if stdout.channel.recv_exit_status() == 0:  # Checks for error / unexpected output
+                output = f'{stdout.read().decode("utf8")}'  # Stores result of command in string
+                print(output)
+                for line in output:
+                    f.write(line)  # Writing output to csv file
+            else:
+                print(f'STDERR: {stderr.read().decode("utf8")}')  # Displays error message
+
+            stdout.close()
+            stderr.close()
+        client.close()
+
+
+"""
+# Old code that only ran on host machine, will remove in final version
 def find_programs():
     global absolute_file
     f = open(absolute_file, "wb")
@@ -34,25 +99,25 @@ def find_programs():
     print("Finished Successfully!")
     print(absolute_file)  # TEST LINE REMOVE WHEN FINISHED
     return
+"""
 
 
 def diff(lines1, lines2):  # Function to compare lists
     return list(set(lines1) - set(lines2)) + list(set(lines2) - set(lines1))  #
 
 
-def compare_programs():
-    list_of_files = glob.glob('C:/Results/*.txt')  # Retrieves list of files in directory using the .txt format
-    latest_file = max(list_of_files, key=os.path.getctime)  # Gets the file that was lasted created in the directory
+def compare_programs():  # Does not work with current version
+    global absolute_file
+
+    list_of_files = glob.glob('C:/Results/*.csv')  # Retrieves list of files in directory using the .csv format
     sorted_files = sorted(list_of_files, key=os.path.getctime)
 
     number_of_files = len(os.listdir("C:/Results"))
     if number_of_files > 1:
-        print("The latest file created is : ", sorted_files[-1])  # Finds File newly created
-        print("The second latest file created is : ", sorted_files[-2])  # Finds File previously created
 
         print("COMPARE TEST CHECKPOINT 1")  # DEBUG CODE
 
-        f1 = open(sorted_files[-1], "r")  # Opens the newest file
+        f1 = open(absolute_file, "r")  # Opens the newest file
         f2 = open(sorted_files[-2], "r")  # Opens the second-newest file
 
         lines1 = f1.readlines()  # Stored first file in list
@@ -85,9 +150,9 @@ def compare_programs():
 def generate_file():
     current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S")  # Using Date and time for unique file name
     global absolute_file
-    file1 = current_datetime + ".txt"
+    file1 = current_datetime + ".csv"
     global save_path
-    absolute_file = os.path.join(save_path, file1)  # Combing directory path and unique file name
+    absolute_file = os.path.join(absolute_file, file1)  # Combing directory path and unique file name
     print(absolute_file)  # TESTING CODE
     f = open(absolute_file, 'x')  # Creating unique file in directory
 
@@ -97,11 +162,9 @@ def generate_file():
     return absolute_file
 
 
-def run_script():  # Order executing functions in
-    # remote_connection()
-    generate_file()
-    find_programs()
-    compare_programs()
+def run_script():
+    remote_connection()
+    # compare_programs()  # Not fully implemented for current version
 
 
 run_script()
