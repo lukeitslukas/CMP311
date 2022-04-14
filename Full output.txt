@@ -1,0 +1,5 @@
+127.0.0.1, tcp; 135: open, 445: open, 903: open, 1075: open, 5357: open, 10004: open
+192.168.0.1, 4C:38:D8:00:E6:68, tcp; 80: open, 443: open, 5000: open, 8081: filtered, 8082: filtered
+192.168.0.18, F0:EF:86:96:65:25, tcp; 8008: open, 8009: open, 8443: open, 9000: open, 10001: open
+192.168.0.19, A4:50:46:30:15:67, 192.168.0.24, tcp; 135: open, 139: open, 445: open, 903: open, 5357: open, 10004: open
+192.168.0.27, 26:88:D4:CB:0E:FD, 
