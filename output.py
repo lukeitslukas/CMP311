@@ -1,58 +1,60 @@
+import pyndiff
 import dominate
 from dominate.tags import *
-from collections import Counter
 
 
-def readFile(filename):
-    outputList = []
+def createDiff():
+    diff = pyndiff.generate_diff(
+        "oldOutput.xml",
+        "newOutput.xml",
+        ignore_udp_open_filtered=False,
+        output_type="txt"
+    )
 
-    with open(f"{filename}.txt", "r") as output:
-        for line in output:
-
-            counter = 0
-            list = line.strip().split(',', 2)
-            list[2] = list[2].strip().split(',')
-
-            for i in list[2]:
-                if i != '':
-                    list[2][counter] = (i.strip().split(":"))
-                counter += 1
-
-            outputList.append(list)
-
-    output.close()
-
-    return outputList
+    file = open('test.txt', 'w')
+    file.write(diff)
+    file.close()
 
 
-def nmapOutput(report, newList, oldList):
-    ipCounter = Counter()
-    macCounter = Counter()
+def nmapOutput(report):
+    diffFile = open("test.txt", "r").read()
+    if not diffFile:
+        resultsHeader(report, 'green', 'Nmap Results', 'There are no changes since the last scan')
+    elif 'host' not in diffFile.lower():
+        resultsHeader(report, 'yellow', 'Nmap Results', 'There are small changes since the last scan')
+    else:
+        resultsHeader(report, 'red', 'Nmap Results', 'There are several changes since the last scan')
 
-    length = max(len(newList), len(oldList))
-
-    for i in range(0, len(newList)):
-        ipCounter[newList[i][0].strip()] += 1
-        if newList[i][1].strip() != "":
-            macCounter[newList[i][1].strip()] += 1
-    for i in range(0, len(oldList)):
-        ipCounter[oldList[i][0].strip()] += 1
-        if oldList[i][1].strip() != "":
-            macCounter[oldList[i][1].strip()] += 1
-
-    for i in range(0, len(newList)):
-        if ipCounter[newList[i][0].strip()] != 2 and newList[i][0].strip():
-            print(newList[i][0], 'new ip', ipCounter[newList[i][0].strip()])
-        if macCounter[newList[i][1].strip()] != 2 and newList[i][1].strip():
-            print(newList[i][1], 'new mac', macCounter[newList[i][1].strip()])
-    for i in range(0, len(oldList)):
-        if ipCounter[oldList[i][0].strip()] != 2 and oldList[i][0].strip():
-            print(oldList[i][0], 'disconnected', ipCounter[oldList[i][0].strip()])
-        if macCounter[oldList[i][1].strip()] != 2 and oldList[i][1].strip():
-            print(oldList[i][1], 'changed mac', macCounter[oldList[i][1].strip()])
-
-
-    return report
+    for line in open("test.txt", "r"):
+        if line.strip():
+            if '-Nmap' in line.strip():
+                insertParagraph(report, 'Old Scan details: ' + line.strip().partition('-')[2], "code")
+            elif '+Nmap' in line.strip():
+                insertParagraph(report, 'New Scan details: ' + line.strip().partition('+')[2], "code")
+                report.add(br())
+            elif line.strip()[0] == '-':
+                if '/tcp' in line.strip():
+                    insertParagraph(report, 'Removed: PORT    STATE  VERSION', "code")
+                    insertParagraph(report, 'Removed: ' + line.strip().partition('-')[2], "code")
+                elif '/udp' in line.strip():
+                    insertParagraph(report, 'Removed: PORT    STATE  VERSION', "code")
+                    insertParagraph(report, 'Removed: ' + line.strip().partition('-')[2], "code")
+                else:
+                    insertParagraph(report, 'Removed entry: ' + line.strip().partition('-')[2], "code")
+            elif line.strip()[0] == '+':
+                if '/tcp' in line.strip():
+                    insertParagraph(report, 'Added: PORT    STATE  VERSION', "code")
+                    insertParagraph(report, 'Added: ' + line.strip().partition('+')[2], "code")
+                elif '/udp' in line.strip():
+                    insertParagraph(report, 'Added: PORT    STATE  VERSION', "code")
+                    insertParagraph(report, 'Added: ' + line.strip().partition('+')[2], "code")
+                else:
+                    insertParagraph(report, 'New entry: ' + line.strip().partition('+')[2], "code")
+            elif '   ' in line.strip():
+                continue
+            else:
+                insertParagraph(report, line.strip(), "code")
+    report.add(hr())
 
 
 def setupDoc(report):
@@ -72,13 +74,12 @@ def resultsHeader(report, colour, title, context):
             p(title, cls='title ' + colour)
 
     report += (p(context))
-    report.add(hr())
     return report
 
 
-def insertParagraph(report, context):
+def insertParagraph(report, context, pTag):
     # inserts a paragraph of text
-    report.add(p(context))
+    report.add(p(context, cls=pTag))
     return report
 
 
@@ -87,13 +88,13 @@ def main():
 
     setupDoc(report)
 
-    insertParagraph(report, 'The results of the automated software are as follows:')
+    insertParagraph(report, 'This report is a human readable version of the security software results.', "")
 
     report.add(hr())
 
-    newOutputList, oldOutputList = readFile("newOutput"), readFile("oldOutput")
+    createDiff()
 
-    nmapOutput(report, newOutputList, oldOutputList)
+    nmapOutput(report)
 
     resultsHeader(report, 'green', 'User Passwords', 'No user passwords were found in common password lists.')
 

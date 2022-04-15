@@ -18,6 +18,10 @@ p {
   clear: both;
 }
 
+.code {
+  margin: 1px;
+}
+
 .red {
   background-color: #FF5C5C;
 }
