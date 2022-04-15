@@ -11,13 +11,13 @@ def createDiff():
         output_type="txt"
     )
 
-    file = open('test.txt', 'w')
+    file = open('diff.txt', 'w')
     file.write(diff)
     file.close()
 
 
 def nmapOutput(report):
-    diffFile = open("test.txt", "r").read()
+    diffFile = open("diff.txt", "r").read()
     if not diffFile:
         resultsHeader(report, 'green', 'Nmap Results', 'There are no changes since the last scan')
     elif 'host' not in diffFile.lower():
@@ -25,7 +25,7 @@ def nmapOutput(report):
     else:
         resultsHeader(report, 'red', 'Nmap Results', 'There are several changes since the last scan')
 
-    for line in open("test.txt", "r"):
+    for line in open("diff.txt", "r"):
         if line.strip():
             if '-Nmap' in line.strip():
                 insertParagraph(report, 'Old Scan details: ' + line.strip().partition('-')[2], "code")
