@@ -5,12 +5,12 @@ import os.path
 from paramiko import SSHClient, AutoAddPolicy
 from rich import print
 
-save_path = 'C:/Results'  # Directory for all results
+save_path = 'Results'  # Directory for all results
 absolute_file = str("")  # Unique File name bundled with Directory (C:/Results/"PCname"/)
 result_file = ""
 sub_directory = ""
 machine_name = ""
-master_file = "C:/Results/MasterFile.csv"
+master_file = "Results/MasterFile.csv"
 
 
 def create_master():  # Creates master file if not already created
@@ -22,9 +22,8 @@ def create_master():  # Creates master file if not already created
 
 def create_directories(hostname):  # Create Results Directory, and subdirectories, if they do not already exist
     global absolute_file, sub_directory
-    directory = "C:/Results/"
+    directory = "Results/"
     sub_directory = directory + hostname + "Logs"
-    print(sub_directory)
     if not os.path.exists(directory):  # Create Results Directory if it does not already exist
         os.makedirs(directory)
     if not os.path.exists(sub_directory):  # Create subdirectory (PC name in workgroup) if it does not already exist
@@ -58,8 +57,8 @@ def remote_connection():  # Code to connect to other machines, run batch file an
 
         if stdout.channel.recv_exit_status() == 0:
             hostname = f'{stdout.read().decode("utf8")}'
-            print(hostname)  # DEBUG CODE REMOVE WHEN FINISHED
             hostname = hostname.strip('\r\n')
+            print("Connected to :", hostname)
             machine_name = hostname
             create_directories(hostname)  # Pass PC name to create_directories function
 
@@ -80,7 +79,6 @@ def remote_connection():  # Code to connect to other machines, run batch file an
 
             if stdout.channel.recv_exit_status() == 0:  # Checks for error / unexpected output
                 output = f'{stdout.read().decode("utf8")}'  # Stores result of command in string
-                print(output)
                 for line in output:
                     f.write(line)  # Writing output to csv file
                 f.close()
@@ -102,7 +100,6 @@ def compare_programs():  # Does not work with current version
 
     list_of_files = glob.glob(sub_directory + '\*.csv')  # Retrieves list of files in directory using the .csv format
     list_of_files.sort(reverse=True, key=os.path.getctime)
-    print("This is the list of files", list_of_files)
 
     number_of_files = len(os.listdir(sub_directory))
     if number_of_files > 1:
@@ -115,9 +112,6 @@ def compare_programs():  # Does not work with current version
         file2 = t2.readlines()
         t2.close()
 
-        print("This is file1 :", file1)
-        print("This is file2 :", file2)
-
         with open(result_file, 'w') as f:
             f.write(machine_name + '\n')
             for line in file1:
@@ -127,7 +121,7 @@ def compare_programs():  # Does not work with current version
 
         with open(result_file, 'r') as firstfile, open(master_file, 'a') as secondfile:
             for line in firstfile:  # Writing each line from result file to master file
-                secondfile.write(line + '\n')
+                secondfile.write(line)
             secondfile.write('\n')
 
         firstfile.close()
@@ -145,7 +139,7 @@ def compare_programs():  # Does not work with current version
 def generate_file(hostname):
     current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S")  # Using Date and time for unique file name
     global absolute_file, result_file, master_file
-    directory = "C:/Results/"
+    directory = "Results/"
     filename = current_datetime + ".csv"
     result_file = hostname + ".csv"
     global save_path
