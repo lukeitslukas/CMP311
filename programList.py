@@ -91,10 +91,6 @@ def remote_connection():  # Code to connect to other machines, run batch file an
         client.close()
 
 
-def diff(lines1, lines2):  # Function to compare lists
-    return list(set(lines1) - set(lines2)) + list(set(lines2) - set(lines1))  #
-
-
 def compare_programs():  # Does not work with current version
     global absolute_file, result_file, sub_directory, machine_name, master_file
 
@@ -113,10 +109,12 @@ def compare_programs():  # Does not work with current version
         t2.close()
 
         with open(result_file, 'w') as f:
-            f.write(machine_name + '\n')
+            f.write(machine_name + ': ')
             for line in file1:
                 if line not in file2:
+                    line = line.strip()
                     f.write(line)
+                    f.write(", ")
         f.close()
 
         with open(result_file, 'r') as firstfile, open(master_file, 'a') as secondfile:
