@@ -9,7 +9,7 @@ save_path = 'Results'  # Directory for all results
 absolute_file = str("")  # Unique File name bundled with Directory (C:/Results/"PCname"/)
 result_file = ""
 sub_directory = ""
-machine_name = ""
+machine_name = ""  # Used for writing to Results file and MasterFile
 master_file = "Results/MasterFile.csv"
 
 
@@ -45,12 +45,11 @@ def remote_connection():  # Code to connect to other machines, run batch file an
         client.set_missing_host_key_policy(AutoAddPolicy())
         client.load_system_host_keys()
 
-        # client.connect('192.168.0.32', username='SecurityAdmin', password='admin')  # Dont use if SSH keys are
-        # available
-        client.connect(host, username='SecurityAdmin')
+        # Do not alter program to connect using password, as it will be visible in plaintext in this file
+        client.connect(host, username='SecurityAdmin')  # No password as SSH keys are used
 
-        host_command = 'hostname'
-        commands = ['softwareList.bat']  # Name of program on Remote PC
+        host_command = 'hostname'  # Command to retrieve name of PC
+        commands = ['softwareList.bat']  # Name of batch file on Remote PC
 
         stdin, stdout, stderr = client.exec_command(host_command)  # Command to receive name of PC
         stdin.close()
@@ -58,7 +57,7 @@ def remote_connection():  # Code to connect to other machines, run batch file an
         if stdout.channel.recv_exit_status() == 0:
             hostname = f'{stdout.read().decode("utf8")}'
             hostname = hostname.strip('\r\n')
-            print("Connected to :", hostname)
+            print("Connected to:", hostname)
             machine_name = hostname
             create_directories(hostname)  # Pass PC name to create_directories function
 
@@ -82,48 +81,51 @@ def remote_connection():  # Code to connect to other machines, run batch file an
                 for line in output:
                     f.write(line)  # Writing output to csv file
                 f.close()
-                compare_programs()
+                print("Finding Newly installed programs...")
+                compare_programs()  # Runs function
             else:
                 print(f'STDERR: {stderr.read().decode("utf8")}')  # Displays error message
 
             stdout.close()
             stderr.close()
-        client.close()
+        client.close()  # Closes SSH connection with Client machine
 
 
-def compare_programs():  # Does not work with current version
+def compare_programs():
     global absolute_file, result_file, sub_directory, machine_name, master_file
 
     list_of_files = glob.glob(sub_directory + '\*.csv')  # Retrieves list of files in directory using the .csv format
-    list_of_files.sort(reverse=True, key=os.path.getctime)
+    list_of_files.sort(reverse=True, key=os.path.getctime)  # Sort files by creation date, newest to oldest
 
-    number_of_files = len(os.listdir(sub_directory))
-    if number_of_files > 1:
+    number_of_files = len(os.listdir(sub_directory))  # Finds number of files in directory
+    if number_of_files > 1:  # Checks to make sure there is more than one file so comparison doesn't fail
 
-        t1 = open(list_of_files[0], 'r')
-        file1 = t1.readlines()
-        t1.close()
+        t1 = open(list_of_files[0], 'r')  # Opens file newly created
+        file1 = t1.readlines()   # Reads file line by line, stores it
+        t1.close()  # Closes file
 
-        t2 = open(list_of_files[1], 'r')
-        file2 = t2.readlines()
-        t2.close()
+        t2 = open(list_of_files[1], 'r')  # Opens second-newest file in Directory
+        file2 = t2.readlines()  # Reads file line by line, stores it
+        t2.close()  # Closes file
 
-        with open(result_file, 'w') as f:
-            f.write(machine_name + ': ')
+        with open(result_file, 'w') as f:  # Opens file for writing
+            f.write(machine_name + ': ')  # Writes name of machine current connected to with SSH
             for line in file1:
-                if line not in file2:
-                    line = line.strip()
-                    f.write(line)
-                    f.write(", ")
-        f.close()
+                if line not in file2:  # Writes any new lines not present in file2 to result_file
+                    line = line.strip()  # Removes new line (\n)
+                    f.write(line)  # Writes line
+                    f.write(", ")  # Writes comma for separation of programs
+        f.close()  # Closes file
 
-        with open(result_file, 'r') as firstfile, open(master_file, 'a') as secondfile:
+        with open(result_file, 'r') as firstfile, open(master_file, 'a') as secondfile:  # Opens result and master file
             for line in firstfile:  # Writing each line from result file to master file
                 secondfile.write(line)
-            secondfile.write('\n')
+            secondfile.write('\n')  # Writes new line so there's a space between each list of programs
 
-        firstfile.close()
-        secondfile.close()
+        firstfile.close()  # Closes file
+        secondfile.close()  # Closes file
+
+        print("Results for", machine_name, "have been stored in the MasterFile.")
 
     elif number_of_files < 1:  # Code to catch exception. Not sure how this would occur but coded in just for safety
         print("ERROR: There should be at least 1 file present in the directory")
@@ -145,7 +147,7 @@ def generate_file(hostname):
     result_file = directory + result_file
     f = open(absolute_file, 'x')  # Creating unique file in directory
 
-    print("New File created : ", absolute_file)
+    print("New Log created:", absolute_file)
     f.close()
 
     if not os.path.exists(result_file):  # Check to see if file already exists, if not, creates it
@@ -155,9 +157,10 @@ def generate_file(hostname):
     return absolute_file, result_file
 
 
-def run_script():
+def run_script():  # Order functions are executed, do not change
     create_master()
     remote_connection()
+    print("Program Finished Successfully!")
 
 
-run_script()
+run_script()  # Runs program
