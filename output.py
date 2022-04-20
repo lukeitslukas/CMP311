@@ -57,6 +57,40 @@ def nmapOutput(report):
     report.add(hr())
 
 
+def programOutput(report):
+    outputArray = []
+    with open("Results/MasterFile.csv", "r") as programFileOutput:
+        for line in programFileOutput:
+            temp = line.strip().split(':')
+            temp[1] = temp[1].strip().split(',')
+            outputArray.append(temp)
+
+    bannedOccur = 0
+    for line in outputArray:
+        for item in line[1]:
+            with open("BannedPrograms.txt", "r") as bannedList:
+                for program in bannedList:
+                    program = program.strip()
+                    item = item.strip()
+                    if program.lower() in item.lower():
+                        bannedOccur += 1
+
+    if bannedOccur >= 3:
+        resultsHeader(report, 'red', 'Device Program Search', 'Three or more banned programs were found')
+    elif bannedOccur > 0:
+        resultsHeader(report, 'yellow', 'Device Program Search', 'Less than three banned programs were found')
+    else:
+        resultsHeader(report, 'green', 'Device Program Search', 'No banned programs were found')
+
+    for line in outputArray:
+        msg = line[0] + ": " + line[1][0]
+        for i in range(1, len(line[1])):
+            if line[1][i]:
+                line[1][i] = line[1][i].strip()
+                msg = msg + ', ' + line[1][i]
+        insertParagraph(report, msg, "code")
+
+
 def setupDoc(report):
     with report.head:
         link(rel='stylesheet', href='css/style.css')
@@ -96,9 +130,7 @@ def main():
 
     nmapOutput(report)
 
-    resultsHeader(report, 'green', 'User Passwords', 'No user passwords were found in common password lists.')
-
-    resultsHeader(report, 'yellow', 'Installed Software', 'Some changes were found but are not concerning.')
+    programOutput(report)
 
     uploadReport = open('index.html', 'w')
     uploadReport.write(report.render())
