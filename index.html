@@ -8,17 +8,23 @@
     <div id="header">
       <h2>Smallwood Rugby Security Report</h2>
     </div>
-    <p>The results of the automated software are as follows:</p>
+    <p class="">This report is a human readable version of the security software results.</p>
     <hr>
     <div style="font-weight: bold;">
-      <p class="title green">User Passwords</p>
+      <p class="title red">Nmap Results</p>
     </div>
-    <p>No user passwords were found in common password lists.</p>
+    <p>There are several changes since the last scan</p>
+    <p class="code">Old Scan details: Nmap 7.92 scan initiated Fri Apr 15 16:22:13 2022 as: nmap -oX - -T4 192.168.0.0/24 127.0.0.1</p>
+    <p class="code">New Scan details: Nmap 7.92 scan initiated Fri Apr 15 16:24:48 2022 as: nmap -oX - -T4 192.168.0.0/24 127.0.0.1</p><br>
+    <p class="code">New entry: 192.168.0.27, 26:88:D4:CB:0E:FD:</p>
+    <p class="code">New entry: Host is up.</p>
+    <p class="code">New entry: Not shown: 1000 closed ports</p>
     <hr>
     <div style="font-weight: bold;">
-      <p class="title yellow">Installed Software</p>
+      <p class="title yellow">Device Program Search</p>
     </div>
-    <p>Some changes were found but are not concerning.</p>
-    <hr>
+    <p>Less than three banned programs were found</p>
+    <p class="code">ClientPC: Mozilla Maintenance Service, Mozilla Firefox (x86 en-GB), Surfshark</p>
+    <p class="code">ClientPC2: Mozilla Maintenance Service, Mozilla Firefox (x86 en-GB)</p>
   </body>
 </html>
