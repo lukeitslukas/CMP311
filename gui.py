@@ -5,9 +5,12 @@ from matplotlib.pyplot import margins
 #main window
 
 layout = [
-    [mwin.Button("Show IP")],
-    [mwin.Button("Scan Network")],
-    [mwin.Button("Scan Network and save to txt file")],
+    #[mwin.Text("Enter IP address to scan")],
+    #[mwin.InputText()],
+    #[mwin.Button("Scan Selected Network")],
+
+    [mwin.Button("Execute Network Scanner")],
+    [mwin.Button("Show IP address")],
     [mwin.Button("Exit")],
 
 ]
@@ -16,14 +19,14 @@ window = mwin.Window("Network Scanner", layout, margins=(200,100))
 
 while True:
     event, values = window.read()
-    if event == "Show IP":
-        os.system('ifconfig')
+    # ipvalue = values[0]
 
-    elif event == "Scan Network and save to txt file":
-        os.system('nmap 192.168.0.0/24 > output.txt')
+    if event == "Execute Network Scanner":
+        os.system('python merger.py')
 
-    elif event == "Scan Network":
-        os.system('nmap 192.168.0.0/24')
+    elif event == "Show IP address":
+        os.system('ipconfig /all')
+
 
     elif event == "Exit" or event == mwin.WIN_CLOSED:
         break
