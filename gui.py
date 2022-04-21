@@ -2,12 +2,9 @@ import PySimpleGUI as mwin
 import os
 from matplotlib.pyplot import margins
 
-#main window
+#main window layout with buttons
 
-layout = [
-    #[mwin.Text("Enter IP address to scan")],
-    #[mwin.InputText()],
-    #[mwin.Button("Scan Selected Network")],
+layout = [ 
 
     [mwin.Button("Execute Network Scanner")],
     [mwin.Button("Show IP address")],
@@ -15,14 +12,18 @@ layout = [
 
 ]
 
-window = mwin.Window("Network Scanner", layout, margins=(200,100))
+#main window name at the top
+
+window = mwin.Window("Network Scanner", layout, margins=(200,100)) 
+
+#loop that waits for user input from the menu
 
 while True:
     event, values = window.read()
-    # ipvalue = values[0]
+    
 
     if event == "Execute Network Scanner":
-        os.system('python merger.py')
+        os.system('python merger.py') #executes merger.py script to execute scripts one after another
 
     elif event == "Show IP address":
         os.system('ipconfig /all')
