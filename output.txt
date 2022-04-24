@@ -1,0 +1,2 @@
+Administrator password is unsafe and needs changed. 
+smallwood.local\steve password is unsafe and needs changed. 
