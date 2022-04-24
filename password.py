@@ -33,7 +33,7 @@ def comparePassword(userList, crackedList):
             passList[i] = passList[i].strip()
             if crackedList[l] == passList[i]:
                 list.append(userList[l])
-                list.append(" password is unsafe and needs changed. \n")
+                list.append("\n")
     with open('output.txt', 'w') as f:#outputs the usernames where the passwords were decrypted
         f.writelines(list)
 
