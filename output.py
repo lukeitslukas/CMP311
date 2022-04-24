@@ -101,10 +101,45 @@ def programOutput(report):
                 line[1][i] = line[1][i].strip()
                 msg = msg + ', ' + line[1][i]
         insertParagraph(report, msg, "code")
+    report.add(hr())
+
+
+def passwordOutput(report):
+    # setup variables for parsing
+    totalPasswords = 0
+    weakPasswords = 0
+    accounts = []
+
+    # open cracked passwords file and add users to array
+    with open("output.txt", "r") as passwordResultFileOutput:
+        for line in passwordResultFileOutput:
+            weakPasswords += 1
+            accounts.append(line.strip())
+
+    # open all passwords file and count number of users
+    with open("password.txt", "r") as passwordFileOutput:
+        for line in passwordFileOutput:
+            if line.strip().endswith(":::"):
+                totalPasswords += 1
+
+    # check number of passwords cracked and output to html
+    if (weakPasswords / totalPasswords) > 0.25:
+        resultsHeader(report, 'red', 'User Passwords', 'More than 25% of passwords cracked')
+        insertParagraph(report, "The following users passwords were cracked:", "")
+        for line in accounts:
+            insertParagraph(report, line.strip(), "code")
+    elif weakPasswords > 1:
+        resultsHeader(report, 'yellow', 'User Passwords', 'One or more passwords were cracked')
+        insertParagraph(report, "The following users passwords were cracked:", "")
+        for line in accounts:
+            insertParagraph(report, line.strip(), "code")
+    else:
+        resultsHeader(report, 'green', 'User Passwords', 'No passwords cracked')
+    report.add(hr())
 
 
 def setupDoc(report):
-    #setup html report
+    # setup html report
     with report.head:
         link(rel='stylesheet', href='css/style.css')
 
@@ -151,6 +186,9 @@ def main():
 
     # filter programFile output and add to report
     programOutput(report)
+
+    # filter passwords output and add to report
+    passwordOutput(report)
 
     # upload document
     uploadReport = open('index.html', 'w')
