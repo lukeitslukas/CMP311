@@ -7,7 +7,6 @@ from matplotlib.pyplot import margins
 layout = [ 
 
     [mwin.Button("Execute Network Scanner")],
-    [mwin.Button("Show IP address")],
     [mwin.Button("Exit")],
 
 ]
@@ -24,10 +23,6 @@ while True:
 
     if event == "Execute Network Scanner":
         os.system('python merger.py') #executes merger.py script to execute scripts one after another
-
-    elif event == "Show IP address":
-        os.system('ipconfig /all')
-
 
     elif event == "Exit" or event == mwin.WIN_CLOSED:
         break
